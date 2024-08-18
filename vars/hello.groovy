@@ -1,1 +1,3 @@
-def sayHello() { echo 'Hello from the shared library, yay' }
+def call() {
+    echo 'Hello from the shared library, yay'
+}
