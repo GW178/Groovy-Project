@@ -1,12 +1,9 @@
-FROM openjdk:11-jdk
+FROM groovy:3.0.9-jdk11
 
 WORKDIR /app
 
 COPY vars/ /app/vars/
 
-COPY install_dependencies.sh /tmp/install_dependencies.sh
-
-RUN chmod +x /tmp/install_dependencies.sh && /tmp/install_dependencies.sh
-
 CMD ["groovy", "vars/hello.groovy"]
+
 
