@@ -1,49 +1,60 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            label 'minikube'
+            defaultContainer 'jnlp'
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins/label: minikube
+spec:
+  containers:
+  - name: docker
+    image: docker:latest
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: docker-socket
+      mountPath: /var/run/docker.sock
+  volumes:
+  - name: docker-socket
+    hostPath:
+      path: /var/run/docker.sock
+            """
+        }
+    }
 
     stages {
         stage('Build Docker Image') {
             steps {
-                script {
-                    def app = docker.build("gwm111/groovy-project:latest")
-                    echo "Image ${app.imageName()} was built."
+                container('docker') {
+                    sh 'docker build -t gwm111/groovy-project:latest .'
                 }
             }
         }
 
         stage('Run Tests') {
             steps {
-                script {
-                    def container = docker.image("gwm111/groovy-project:latest").run('-d')
-
-                    try {
-                        def result = docker.image("gwm111/groovy-project:latest").inside {
-                            sh 'groovy /app/vars/test_sum.groovy'
-                        }
-
-                        if (result.contains("The sum is:")) {
-                            echo "Test succeeded."
-                        } else {
-                            error "Test failed."
-                        }
-                    } catch (Exception e) {
-                        error "Test execution failed: ${e.message}"
-                    } finally {
-                        sh "docker stop ${container.id}"
-                        sh "docker rm ${container.id}"
-                    }
+                container('docker') {
+                    sh 'docker run gwm111/groovy-project:latest ./run-tests.sh'
                 }
             }
         }
 
         stage('Push Docker Image') {
-            when {
-                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
-            }
             steps {
-                script {
-                    docker.image("gwm111/groovy-project:latest").push('latest')
-                    echo "Image pushed to Docker Hub."
+                container('docker') {
+                    script {
+                        // Ensure that the test ran successfully before pushing
+                        if (currentBuild.result == 'SUCCESS') {
+                            sh 'docker push gwm111/groovy-project:latest'
+                        } else {
+                            error("Build failed. Not pushing to Docker Hub.")
+                        }
+                    }
                 }
             }
         }
@@ -55,7 +66,7 @@ pipeline {
             cleanWs()
         }
         failure {
-            echo "Pipeline failed."
+            echo 'Pipeline failed.'
         }
     }
 }
