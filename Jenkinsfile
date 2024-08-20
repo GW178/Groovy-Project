@@ -39,7 +39,7 @@ spec:
         stage('Run Hello Script') {
             steps {
                 container('docker') {
-                    sh 'docker run gwm111/groovy-project:latest'
+                    sh 'docker run -d gwm111/groovy-project:latest'
                 }
             }
         }
@@ -48,7 +48,12 @@ spec:
             steps {
                 container('docker') {
                     script {
-                        sh 'docker exec $(docker ps -q -f ancestor=gwm111/groovy-project:latest) groovy /app/vars/test_sum.groovy'
+                        def containerId = sh(script: "docker ps -q -f 'ancestor=gwm111/groovy-project:latest'", returnStdout: true).trim()
+                        if (containerId) {
+                            sh "docker exec ${containerId} groovy /app/vars/test_sum.groovy"
+                        } else {
+                            error("Failed to find the running container for testing.")
+                        }
                     }
                 }
             }
