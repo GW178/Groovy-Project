@@ -16,6 +16,13 @@ spec:
     command:
     - cat
     tty: true
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "1024Mi"
+        cpu: "1"
     volumeMounts:
     - name: docker-socket
       mountPath: /var/run/docker.sock
@@ -48,12 +55,8 @@ spec:
             steps {
                 container('docker') {
                     script {
-                        def containerId = sh(script: "docker ps -q -f 'ancestor=gwm111/groovy-project:latest'", returnStdout: true).trim()
-                        if (containerId) {
-                            sh "docker exec ${containerId} groovy /app/vars/test_sum.groovy"
-                        } else {
-                            error("Failed to find the running container for testing.")
-                        }
+                        def containerId = sh(script: 'docker ps -q -f "ancestor=gwm111/groovy-project:latest"', returnStdout: true).trim()
+                        sh "docker exec ${containerId} groovy /app/vars/test_sum.groovy"
                     }
                 }
             }
