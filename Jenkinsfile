@@ -86,21 +86,26 @@ spec:
         */
 
         stage('Push Docker Image Only') {
-            steps {
-                container('docker') {
-                    script {
-                        try {
-                            sh 'docker push gwm111/groovy-project:latest'
-                            echo "Docker image pushed successfully."
-                        } catch (Exception e) {
-                            echo "Failed to push Docker image: ${e.getMessage()}"
-                            error("Docker push failed.")
-                        }
+    steps {
+        container('docker') {
+            script {
+                try {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials-id', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh """
+                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                        docker push gwm111/groovy-project:latest
+                        """
                     }
+                    echo "Docker image pushed successfully."
+                } catch (Exception e) {
+                    echo "Failed to push Docker image: ${e.getMessage()}"
+                    error("Docker push failed.")
                 }
             }
         }
     }
+}
+
 
     post {
         always {
