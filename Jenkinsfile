@@ -38,7 +38,7 @@ spec:
         stage('Build Docker Image') {
             steps {
                 container('docker') {
-                    sh 'docker build -t gwm111/groovy-project:latest .'
+                    sh 'docker build -t gw111/groovy-project:latest .'
                 }
             }
         }
@@ -48,7 +48,7 @@ spec:
         stage('Run Hello Script') {
             steps {
                 container('docker') {
-                    sh 'docker run -d gwm111/groovy-project:latest'
+                    sh 'docker run -d gw111/groovy-project:latest'
                 }
             }
         }
@@ -60,7 +60,7 @@ spec:
             steps {
                 container('docker') {
                     script {
-                        def containerId = sh(script: 'docker ps -q -f "ancestor=gwm111/groovy-project:latest"', returnStdout: true).trim()
+                        def containerId = sh(script: 'docker ps -q -f "ancestor=gw111/groovy-project:latest"', returnStdout: true).trim()
                         sh "docker exec ${containerId} groovy /app/vars/test_sum.groovy"
                     }
                 }
@@ -75,7 +75,7 @@ spec:
                 container('docker') {
                     script {
                         if (currentBuild.result == 'SUCCESS') {
-                            sh 'docker push gwm111/groovy-project:latest'
+                            sh 'docker push gw111/groovy-project:latest'
                         } else {
                             error("Build failed. Not pushing to Docker Hub.")
                         }
@@ -93,7 +93,7 @@ spec:
                             withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials-id', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                                 sh """
                                 echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                                docker push gwm111/groovy-project:latest
+                                docker push gw111/groovy-project:latest
                                 """
                             }
                             echo "Docker image pushed successfully."
