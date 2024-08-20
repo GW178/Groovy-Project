@@ -89,10 +89,12 @@ spec:
             steps {
                 container('docker') {
                     script {
-                        if (currentBuild.result == 'SUCCESS') {
+                        try {
                             sh 'docker push gwm111/groovy-project:latest'
-                        } else {
-                            error("Build failed. Not pushing to Docker Hub.")
+                            echo "Docker image pushed successfully."
+                        } catch (Exception e) {
+                            echo "Failed to push Docker image: ${e.getMessage()}"
+                            error("Docker push failed.")
                         }
                     }
                 }
