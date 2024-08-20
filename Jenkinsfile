@@ -43,6 +43,8 @@ spec:
             }
         }
 
+        // commented out for a test
+        /*
         stage('Run Hello Script') {
             steps {
                 container('docker') {
@@ -50,7 +52,10 @@ spec:
                 }
             }
         }
+        */
 
+        // commented out for a test
+        /*
         stage('Run Tests') {
             steps {
                 container('docker') {
@@ -61,8 +66,26 @@ spec:
                 }
             }
         }
+        */
 
+        // commented out for a test
+        /*
         stage('Push Docker Image') {
+            steps {
+                container('docker') {
+                    script {
+                        if (currentBuild.result == 'SUCCESS') {
+                            sh 'docker push gwm111/groovy-project:latest'
+                        } else {
+                            error("Build failed. Not pushing to Docker Hub.")
+                        }
+                    }
+                }
+            }
+        }
+        */
+
+        stage('Push Docker Image Only') {
             steps {
                 container('docker') {
                     script {
@@ -87,5 +110,4 @@ spec:
         }
     }
 }
-
 
