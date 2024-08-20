@@ -36,10 +36,20 @@ spec:
             }
         }
 
+        stage('Run Hello Script') {
+            steps {
+                container('docker') {
+                    sh 'docker run gwm111/groovy-project:latest'
+                }
+            }
+        }
+
         stage('Run Tests') {
             steps {
                 container('docker') {
-                    sh 'docker run gwm111/groovy-project:latest ./run-tests.sh'
+                    script {
+                        sh 'docker exec $(docker ps -q -f ancestor=gwm111/groovy-project:latest) groovy /app/vars/test_sum.groovy'
+                    }
                 }
             }
         }
@@ -48,7 +58,6 @@ spec:
             steps {
                 container('docker') {
                     script {
-                        // Ensure that the test ran successfully before pushing
                         if (currentBuild.result == 'SUCCESS') {
                             sh 'docker push gwm111/groovy-project:latest'
                         } else {
@@ -70,4 +79,5 @@ spec:
         }
     }
 }
+
 
